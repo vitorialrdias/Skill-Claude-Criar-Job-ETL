@@ -1,0 +1,28 @@
+{
+  "job": "Exemplo",
+  "log_name": "Exemplo",
+  "projeto": "<Projeto>",
+  "pasta_destino": "<caminho/Job_Exemplo/EXEMPLO>",
+  "conexoes": { "origem": "<secao_origem>", "staging": "<secao_stg>", "dw": "<secao_dw>", "aux": "<secao_aux>" },
+  "datasets_powerbi": { "workspace": "", "datasets": [] },
+  "tabelas": [
+    {
+      "nome": "STG_EXEMPLO", "camada": "ORIGEM", "grupo": 0,
+      "tabela_sql_origem": "dbo.TB_EXEMPLO", "where": "",
+      "regra_negocio": "<prosa>",
+      "overrides": { "DATA_INCLUSAO": "GETDATE()" },
+      "campos": [
+        { "origem": "COD", "destino": "COD", "tipo": "nvarchar", "tamanho": "-1" },
+        { "origem": "", "destino": "DATA_INCLUSAO", "tipo": "datetime" }
+      ]
+    },
+    {
+      "nome": "DM_EXEMPLO", "camada": "DIMENSOES", "grupo": 1,
+      "tabela_sql_origem": "STG_EXEMPLO",
+      "regra_negocio": "<prosa>",
+      "chave_merge": ["COD"], "colunas_update_merge": [],
+      "overrides": {},
+      "campos": [ { "origem": "COD", "destino": "COD", "tipo": "nvarchar", "tamanho": "-1" } ]
+    }
+  ]
+}
