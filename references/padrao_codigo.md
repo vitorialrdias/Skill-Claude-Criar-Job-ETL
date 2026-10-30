@@ -46,6 +46,9 @@ Todo job importa de um pacote Python instalado (`{{BIBLIOTECA_CORE}}`, em
 - `core.spark_configs.spark_facade.Spark` — a "conexão" de fato usada nos `Load_*.py` (tem `.conectar()`,
   `.read(sql, nome_tabela)`, `.write(df, tabela, modo)`, `.execute(sql)`, `.desconectar()`).
 
+Se a biblioteca interna não estiver disponível, a implementação aberta em `biblioteca-core/` (fora da
+pasta da skill) expõe exatamente esta API — o código gerado não muda.
+
 Nunca gere um `Load_*.py` que reimplemente conexão/log/e-mail na mão — sempre via `core.*`.
 
 ## 3. Contrato de retorno de `executar_select_e_update()`

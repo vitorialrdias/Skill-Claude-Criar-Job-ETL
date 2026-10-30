@@ -1,0 +1,10 @@
+{
+  "ambiente": "DEV",
+  "{{SECAO_CONEXAO_ORIGEM}}":  {"host": "servidor-origem", "port": 1433, "database": "BANCO_ORIGEM", "username": "usuario", "password": "SENHA"},
+  "{{SECAO_CONEXAO_STAGING}}": {"host": "servidor-dw", "port": 1433, "database": "STG", "username": "usuario", "password": "SENHA"},
+  "{{SECAO_CONEXAO_DW}}":      {"host": "servidor-dw", "port": 1433, "database": "DW", "username": "usuario", "password": "SENHA"},
+  "{{SECAO_CONEXAO_AUX}}":     {"host": "servidor-dw", "port": 1433, "database": "AUX", "username": "usuario", "password": "SENHA"},
+  "email": {"habilitado": false, "smtp_host": "smtp.exemplo.com", "smtp_port": 587, "usar_tls": true,
+            "usuario": "", "senha": "", "remetente": "etl@exemplo.com", "destinatarios": ["time@exemplo.com"]},
+  "powerbi": {"tenant_id": "", "client_id": "", "client_secret": ""}
+}

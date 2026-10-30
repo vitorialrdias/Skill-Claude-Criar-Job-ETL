@@ -4,6 +4,10 @@ Skill de agente (Claude) que **gera, migra, altera e valida jobs ETL Python/PySp
 `{{PASTA_PROJETO}}` (camadas `ORIGEM` / `DIMENSOES` / `FATOS` + biblioteca `{{BIBLIOTECA_CORE}}`),
 a partir de uma **nota de spec no Obsidian** e/ou de um **`.ktr`/`.kjb` do Pentaho** original.
 
+> **Não precisa de acesso à biblioteca interna:** a pasta [`biblioteca-core/`](biblioteca-core/README.md)
+> traz uma implementação aberta e centralizada de conexões, log, auditoria, e-mail e Power BI,
+> com a mesma API que o código gerado usa. Instale-a e os jobs rodam sem alteração.
+>
 > Este repositório é um **template**: os nomes específicos do projeto estão como variáveis
 > `{{...}}`. Veja [`VARIAVEIS.md`](VARIAVEIS.md) para a lista completa e a seção
 > [Como adaptar](#13-como-adaptar-este-template) abaixo.
@@ -26,6 +30,7 @@ a partir de uma **nota de spec no Obsidian** e/ou de um **`.ktr`/`.kjb` do Penta
 12. [Limitações conhecidas](#12-limitações-conhecidas)
 13. [Como adaptar este template](#13-como-adaptar-este-template)
 14. [Perguntas frequentes](#14-perguntas-frequentes)
+15. [Biblioteca `{{BIBLIOTECA_CORE}}` incluída](#15-biblioteca-biblioteca_core-incluída)
 
 ---
 
@@ -73,6 +78,11 @@ O gatilho é definido no campo `description` do frontmatter de `SKILL.md`.
 │   ├── generate_job.py              # spec.json → árvore completa do job
 │   ├── apply_change.py              # Campo novo / tabela nova em job existente
 │   └── validate_job.py              # Validação estática + sugestões
+├── biblioteca-core/                 # Biblioteca aberta de conexões/log/auditoria (instalável via pip)
+│   ├── pyproject.toml
+│   ├── core/                        # configs, connection, logging, send_mail, log_tables,
+│   │                                # api_powerbi, spark_configs/spark_facade
+│   └── exemplos/                    # credenciais de exemplo + DDL das tabelas de log
 └── docs/
     └── DOCUMENTACAO_ACADEMICA.md    # Documentação conceitual (NÃO usada pela skill)
 ```
@@ -83,6 +93,7 @@ O gatilho é definido no campo `description` do frontmatter de `SKILL.md`.
 | `references/` | Sim, sob demanda | `padrao_codigo.md` deve ser lido antes de gerar/validar |
 | `assets/` | Sim | Copiado para o vault do Obsidian |
 | `scripts/` | Executados | Não precisam ser lidos para serem usados |
+| `biblioteca-core/` | **Não** | Instalada no ambiente onde os jobs rodam |
 | `README.md`, `VARIAVEIS.md`, `docs/` | **Não** | Apenas para leitores humanos |
 
 ## 4. Instalação e requisitos
@@ -94,10 +105,14 @@ O gatilho é definido no campo `description` do frontmatter de `SKILL.md`.
    - apenas biblioteca padrão, exceto `read_frontmatter.py`, que usa **PyYAML**:
      `pip install pyyaml --break-system-packages`.
 3. Requisitos para o **job gerado** rodar:
-   - pacote `{{BIBLIOTECA_CORE}}` instalado (em `{{CAMINHO_BIBLIOTECA}}`);
-   - arquivo `{{ARQUIVO_CREDENCIAIS}}` com as seções de conexão
-     (`{{SECAO_CONEXAO_ORIGEM}}`, `{{SECAO_CONEXAO_STAGING}}`, `{{SECAO_CONEXAO_DW}}`,
-     `{{SECAO_CONEXAO_AUX}}`).
+   - instalar a biblioteca incluída: `pip install -e "./biblioteca-core[spark]"`
+     (ou, se você tiver acesso, a biblioteca interna em `{{CAMINHO_BIBLIOTECA}}`);
+   - driver ODBC do SQL Server e Java (para o Spark);
+   - **um único** arquivo `{{ARQUIVO_CREDENCIAIS}}`, centralizado numa pasta acima dos jobs ou
+     apontado por `ETL_CREDENCIAIS`, com as seções `{{SECAO_CONEXAO_ORIGEM}}`,
+     `{{SECAO_CONEXAO_STAGING}}`, `{{SECAO_CONEXAO_DW}}`, `{{SECAO_CONEXAO_AUX}}`, `email` e
+     `powerbi` (modelo em `biblioteca-core/exemplos/`);
+   - tabelas de auditoria criadas com `biblioteca-core/exemplos/ddl_tabelas_log.sql`.
 
 Nenhum script acessa banco de dados.
 
@@ -136,7 +151,8 @@ Job_<Nome>/<NOME_PASTA>/
   (reconecta se a conexão cair);
 - opcionalmente atualiza datasets do Power BI ao final (`datasets_powerbi`).
 
-**Biblioteca `{{BIBLIOTECA_CORE}}`** — toda infraestrutura vem dela, nunca é reimplementada:
+**Biblioteca `{{BIBLIOTECA_CORE}}`** — toda infraestrutura vem dela, nunca é reimplementada nos jobs
+(implementação aberta incluída em `biblioteca-core/`, ver seção 15):
 
 | Módulo | Uso |
 |---|---|
@@ -338,8 +354,11 @@ silenciosamente — é a primeira coisa que o validador confere.
    *Replace in Files*; ou `sed -i 's/{{PASTA_PROJETO}}/MEU_PROJETO/g' $(grep -rl '{{' .)`).
 3. Renomeie o arquivo `assets/Template - {{TIPO_JOB}}.md` e a pasta para `{{NOME_SKILL}}`.
 4. Confira que não sobrou nada: `grep -rn '{{' . --exclude=README.md --exclude=VARIAVEIS.md`.
-5. Ajuste `references/padrao_codigo.md` se o seu padrão diferir (é a fonte da verdade).
-6. Teste: gere o exemplo com `--dry-run` e rode `validate_job.py`.
+5. Configure a biblioteca: copie e preencha `biblioteca-core/exemplos/{{ARQUIVO_CREDENCIAIS}}.exemplo`,
+   crie as tabelas de log e instale com `pip install -e "./biblioteca-core[spark]"`.
+   Renomeie também o arquivo de exemplo (o nome contém variável).
+6. Ajuste `references/padrao_codigo.md` se o seu padrão diferir (é a fonte da verdade).
+7. Teste: gere o exemplo com `--dry-run` e rode `validate_job.py`.
 
 ## 14. Perguntas frequentes
 
@@ -353,3 +372,31 @@ silenciosamente — é a primeira coisa que o validador confere.
 **O `docs/` é carregado pela skill?** Não; é só documentação para humanos.
 
 **O validador acusou erro de sintaxe num job antigo.** Verifique a versão do Python (ver seção 7).
+
+**Não tenho acesso à biblioteca interna.** Use a de `biblioteca-core/`; a API é a mesma.
+
+**Meu banco não é SQL Server.** Altere só `core/connection.py` e `core/spark_configs/spark_facade.py`.
+
+## 15. Biblioteca `{{BIBLIOTECA_CORE}}` incluída
+
+Implementação aberta, com a mesma API chamada pelo código gerado — por isso os jobs não precisam
+de nenhuma mudança. Todas as conexões ficam **centralizadas** em um único arquivo de credenciais;
+nenhum job contém host, usuário ou senha.
+
+| Módulo | Responsabilidade |
+|---|---|
+| `core/configs.py` | Localiza e carrega `{{ARQUIVO_CREDENCIAIS}}` (`ETL_CREDENCIAIS` ou subindo pastas), nome do job, ambiente (`ambiente` nas credenciais) e ordem dos `Load_*.py` conforme `load_files` |
+| `core/connection.py` | `DatabaseConfig` a partir de uma seção das credenciais; `Connections` cria conexão pyodbc (usada na auditoria) |
+| `core/spark_configs/spark_facade.py` | `Spark`: leitura/escrita via JDBC (SparkSession única por job) e `execute()` via pyodbc para MERGE |
+| `core/logging.py` | Log em console + `logs/<job>_<data>.log` |
+| `core/send_mail.py` | E-mail de erro por SMTP (`email.habilitado=false` só registra no log) |
+| `core/log_tables.py` | Inserts em `{{TABELA_LOG_ATUALIZACAO}}` e `{{TABELA_LOG_DT}}` |
+| `core/api_powerbi.py` | Refresh de datasets via service principal (opcional) |
+
+Formato de cada seção de conexão:
+
+```json
+"{{SECAO_CONEXAO_DW}}": {"host": "...", "port": 1433, "database": "DW", "username": "...", "password": "...", "driver": "ODBC Driver 18 for SQL Server"}
+```
+
+Detalhes de instalação e variáveis de ambiente: [`biblioteca-core/README.md`](biblioteca-core/README.md).

@@ -28,4 +28,9 @@ localizar/substituir em toda a pasta) e renomeie a pasta para o valor de `{{NOME
 | `{{ARQUIVO_EXEMPLO_STG}}`, `{{ARQUIVO_EXEMPLO_FT}}` | Arquivos citados como exemplo | `Load_STG_VA.py` |
 | `{{TABELA_ATUAL_EXEMPLO}}`, `{{TABELA_HISTORICO_EXEMPLO}}` | Tabelas de exemplo de origem múltipla | `BEN_VA`, `BEN_VAH` |
 
+A variável também aparece em **nomes de arquivo** (ex.: `assets/Template - {{TIPO_JOB}}.md`,
+`biblioteca-core/exemplos/{{ARQUIVO_CREDENCIAIS}}.exemplo`) e em **nomes de método** em
+`biblioteca-core/core/log_tables.py` — renomeie/substitua esses também. Os valores das variáveis
+`{{TABELA_LOG_*}}` precisam ser identificadores Python válidos.
+
 A pasta `docs/` contém apenas a documentação acadêmica e não é usada pela skill.
