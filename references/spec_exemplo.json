@@ -1,28 +1,60 @@
 {
   "job": "Exemplo",
   "log_name": "Exemplo",
-  "projeto": "<Projeto>",
-  "pasta_destino": "<caminho/Job_Exemplo/EXEMPLO>",
-  "conexoes": { "origem": "<secao_origem>", "staging": "<secao_stg>", "dw": "<secao_dw>", "aux": "<secao_aux>" },
-  "datasets_powerbi": { "workspace": "", "datasets": [] },
+  "projeto": "{{PROJETO}}",
+  "pasta_destino": "{{RAIZ_JOBS}}/{{PASTA_PROJETO}}/Job_Exemplo/EXEMPLO",
+  "conexoes": {
+    "origem": "{{SECAO_CONEXAO_ORIGEM}}",
+    "staging": "{{SECAO_CONEXAO_STAGING}}",
+    "dw": "{{SECAO_CONEXAO_DW}}",
+    "aux": "{{SECAO_CONEXAO_AUX}}"
+  },
+  "datasets_powerbi": {
+    "workspace": "SEU-WORKSPACE-ID-AQUI",
+    "datasets": [
+      { "nome": "Exemplo - Base", "id": "SEU-DATASET-ID-AQUI" }
+    ]
+  },
   "tabelas": [
     {
-      "nome": "STG_EXEMPLO", "camada": "ORIGEM", "grupo": 0,
-      "tabela_sql_origem": "dbo.TB_EXEMPLO", "where": "",
-      "regra_negocio": "<prosa>",
-      "overrides": { "DATA_INCLUSAO": "GETDATE()" },
+      "nome": "STG_EXEMPLO",
+      "camada": "ORIGEM",
+      "grupo": 0,
+      "tabela_sql_origem": "dbo.TB_EXEMPLO",
+      "where": "D_E_L_E_T_ = ''",
+      "regra_negocio": "Extrai o cadastro ativo da tabela legada TB_EXEMPLO.",
+      "overrides": {
+        "DATA_INCLUSAO": "GETDATE()"
+      },
       "campos": [
-        { "origem": "COD", "destino": "COD", "tipo": "nvarchar", "tamanho": "-1" },
+        { "origem": "COD_EXEMPLO", "destino": "COD_EXEMPLO", "tipo": "nvarchar", "tamanho": "-1" },
+        { "origem": "NOME_EXEMPLO", "destino": "NOME_EXEMPLO", "tipo": "nvarchar", "tamanho": "-1" },
+        { "origem": "VALOR_EXEMPLO", "destino": "VALOR_EXEMPLO", "tipo": "nvarchar", "tamanho": "-1" },
         { "origem": "", "destino": "DATA_INCLUSAO", "tipo": "datetime" }
       ]
     },
     {
-      "nome": "DM_EXEMPLO", "camada": "DIMENSOES", "grupo": 1,
+      "nome": "DM_EXEMPLO",
+      "camada": "DIMENSOES",
+      "grupo": 1,
       "tabela_sql_origem": "STG_EXEMPLO",
-      "regra_negocio": "<prosa>",
-      "chave_merge": ["COD"], "colunas_update_merge": [],
-      "overrides": {},
-      "campos": [ { "origem": "COD", "destino": "COD", "tipo": "nvarchar", "tamanho": "-1" } ]
+      "regra_negocio": "Dimensão do exemplo, chave natural COD_EXEMPLO. Atualiza nome/valor quando mudam.",
+      "chave_merge": ["COD_EXEMPLO"],
+      "colunas_update_merge": ["NOME_EXEMPLO", "VALOR_EXEMPLO"],
+      "overrides": {
+        "version": "1",
+        "DT_INCLUSAO_SYSTEM": "GETDATE()",
+        "DT_ATUALIZACAO_SYSTEM": "GETDATE()",
+        "VALOR_EXEMPLO": "CONVERT(NUMERIC(18,2), VALOR_EXEMPLO)"
+      },
+      "campos": [
+        { "origem": "COD_EXEMPLO", "destino": "COD_EXEMPLO", "tipo": "nvarchar", "tamanho": "-1" },
+        { "origem": "NOME_EXEMPLO", "destino": "NOME_EXEMPLO", "tipo": "nvarchar", "tamanho": "-1" },
+        { "origem": "VALOR_EXEMPLO", "destino": "VALOR_EXEMPLO", "tipo": "numeric", "tamanho": "18,2" },
+        { "origem": "", "destino": "version", "tipo": "int" },
+        { "origem": "", "destino": "DT_INCLUSAO_SYSTEM", "tipo": "datetime" },
+        { "origem": "", "destino": "DT_ATUALIZACAO_SYSTEM", "tipo": "datetime" }
+      ]
     }
   ]
 }
